@@ -5,8 +5,13 @@ import 'package:quanti_app/features/transactions/presentation/providers/transact
 import 'package:quanti_app/features/transactions/presentation/screens/home_screen.dart';
 import 'package:quanti_app/features/transactions/presentation/screens/reports_screen.dart';
 import 'package:quanti_app/features/transactions/presentation/screens/summary_screen.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+  RequestConfiguration requestConfiguration = RequestConfiguration(testDeviceIds: ['D3DC9B1C037AFCCB5CA5DA6BC68CD9CF']);
+  MobileAds.instance.updateRequestConfiguration(requestConfiguration);
   runApp(const MyApp());
 }
 

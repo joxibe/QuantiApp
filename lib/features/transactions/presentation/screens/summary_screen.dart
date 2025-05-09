@@ -4,9 +4,49 @@ import 'package:quanti_app/core/theme/app_colors.dart';
 import 'package:quanti_app/features/transactions/domain/models/transaction_model.dart';
 import 'package:quanti_app/features/transactions/presentation/providers/transaction_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class SummaryScreen extends StatelessWidget {
-  const SummaryScreen({super.key});
+class SummaryScreen extends StatefulWidget {
+  const SummaryScreen({Key? key}) : super(key: key);
+
+  @override
+  _SummaryScreenState createState() => _SummaryScreenState();
+}
+
+class _SummaryScreenState extends State<SummaryScreen> {
+  late BannerAd _bannerAd;
+  bool _isBannerAdReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/9214589741',
+      request: AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          print('Failed to load a banner ad: ${err.message}');
+          _isBannerAdReady = false;
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd.dispose();
+    super.dispose();
+  }
 
   String _formatCurrency(double value) {
     return NumberFormat.currency(
@@ -159,6 +199,12 @@ class SummaryScreen extends StatelessWidget {
                   ),
                 );
               }).toList(),
+            if (_isBannerAdReady)
+              Container(
+                height: _bannerAd.size.height.toDouble(),
+                width: _bannerAd.size.width.toDouble(),
+                child: AdWidget(ad: _bannerAd),
+              ),
           ],
         ),
       ),

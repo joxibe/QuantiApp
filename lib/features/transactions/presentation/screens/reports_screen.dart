@@ -7,12 +7,67 @@ import 'package:quanti_app/features/transactions/presentation/providers/transact
 import 'package:quanti_app/features/transactions/presentation/screens/category_detail_screen.dart';
 import 'package:quanti_app/shared/widgets/stat_row.dart';
 import 'package:intl/intl.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class ReportsScreen extends StatelessWidget {
-  const ReportsScreen({super.key});
+class ReportsScreen extends StatefulWidget {
+  const ReportsScreen({Key? key}) : super(key: key);
+
+  @override
+  _ReportsScreenState createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  late RewardedAd _rewardedAd;
+  bool _isRewardedAdReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRewardedAd();
+  }
+
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          setState(() {
+            _rewardedAd = ad;
+            _isRewardedAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (err) {
+          print('Failed to load a rewarded ad: ${err.message}');
+          _isRewardedAdReady = false;
+        },
+      ),
+    );
+  }
+
+  void _showRewardedAd() {
+    if (_isRewardedAdReady) {
+      _rewardedAd.show(onUserEarnedReward: (ad, reward) {
+        // Aquí puedes manejar la recompensa
+        print('User earned reward: \\${reward.amount} \\${reward.type}');
+      });
+    } else {
+      print('Rewarded ad is not ready yet.');
+    }
+  }
+
+  @override
+  void dispose() {
+    _rewardedAd.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isRewardedAdReady) {
+      _showRewardedAd();
+    }
+
     final provider = context.watch<TransactionProvider>();
     final transactions = provider.transactions;
     final totalIncome = provider.totalIncome;
