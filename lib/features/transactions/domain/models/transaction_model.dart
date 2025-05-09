@@ -29,83 +29,62 @@ class TransactionCategories {
 }
 
 class Transaction {
-  final String id;
+  final int? id;
   final String description;
   final double amount;
-  final TransactionType type;
-  final String category;
   final DateTime date;
+  final String category;
+  final TransactionType type;
 
-  Transaction({
-    String? id,
-    required this.description,
-    required this.amount,
-    required this.type,
-    required this.category,
-    required this.date,
-  }) : id = id ?? const Uuid().v4();
+  Transaction({this.id, required this.description, required this.amount, required this.date, required this.category, required this.type});
+
+  // Convert a Transaction into a Map. The keys must correspond to the names of the
+  // columns in the database.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'description': description,
+      'amount': amount,
+      'date': date.toIso8601String(),
+      'category': category,
+      'type': type.toString(),
+    };
+  }
+
+  // Implement toString to make it easier to see information about
+  // each transaction when using the print statement.
+  @override
+  String toString() {
+    return 'Transaction{id: $id, description: $description, amount: $amount, date: $date, category: $category, type: $type}';
+  }
+
+  // A method that retrieves all the transactions from the transactions table.
+  static Transaction fromMap(Map<String, dynamic> map) {
+    return Transaction(
+      id: map['id'],
+      description: map['description'],
+      amount: map['amount'],
+      date: DateTime.parse(map['date']),
+      category: map['category'],
+      type: TransactionType.values.firstWhere((e) => e.toString() == map['type']),
+    );
+  }
 
   Transaction copyWith({
-    String? id,
+    int? id,
     String? description,
     double? amount,
-    TransactionType? type,
-    String? category,
     DateTime? date,
+    String? category,
+    TransactionType? type,
   }) {
     return Transaction(
       id: id ?? this.id,
       description: description ?? this.description,
       amount: amount ?? this.amount,
-      type: type ?? this.type,
-      category: category ?? this.category,
       date: date ?? this.date,
+      category: category ?? this.category,
+      type: type ?? this.type,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'description': description,
-      'amount': amount,
-      'type': type.toString(),
-      'category': category,
-      'date': date.toIso8601String(),
-    };
-  }
-
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-      id: json['id'] as String,
-      description: json['description'] as String,
-      amount: json['amount'] as double,
-      type: TransactionType.values.firstWhere(
-        (e) => e.toString() == json['type'],
-      ),
-      category: json['category'] as String,
-      date: DateTime.parse(json['date'] as String),
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Transaction &&
-        other.id == id &&
-        other.description == description &&
-        other.amount == amount &&
-        other.type == type &&
-        other.category == category &&
-        other.date == date;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^
-        description.hashCode ^
-        amount.hashCode ^
-        type.hashCode ^
-        category.hashCode ^
-        date.hashCode;
   }
 } 

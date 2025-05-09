@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/transaction_model.dart';
+import '../../../../core/database/database_helper.dart';
 
 class TransactionProvider extends ChangeNotifier {
   final List<Transaction> _transactions = [];
   double _totalIncome = 0;
   double _totalExpenses = 0;
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   TransactionProvider() {
-    loadTestData();
+    _loadTransactionsFromDatabase();
+  }
+
+  Future<void> _loadTransactionsFromDatabase() async {
+    final transactions = await _dbHelper.getTransactions();
+    _transactions.addAll(transactions);
+    _updateTotals();
   }
 
   // Getters
@@ -48,12 +56,14 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   // Métodos de gestión de transacciones
-  void addTransaction(Transaction transaction) {
+  Future<void> addTransaction(Transaction transaction) async {
+    await _dbHelper.insertTransaction(transaction);
     _transactions.add(transaction);
     _updateTotals();
   }
 
-  void updateTransaction(Transaction oldTransaction, Transaction newTransaction) {
+  Future<void> updateTransaction(Transaction oldTransaction, Transaction newTransaction) async {
+    await _dbHelper.updateTransaction(newTransaction);
     final index = _transactions.indexWhere((t) => t.id == oldTransaction.id);
     if (index != -1) {
       _transactions[index] = newTransaction.copyWith(id: oldTransaction.id);
@@ -61,7 +71,8 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  void deleteTransaction(Transaction transaction) {
+  Future<void> deleteTransaction(Transaction transaction) async {
+    await _dbHelper.deleteTransaction(transaction.id!);
     _transactions.removeWhere((t) => t.id == transaction.id);
     _updateTotals();
   }
@@ -98,59 +109,4 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   // Método para cargar datos de prueba
-  void loadTestData() {
-    _transactions.addAll([
-      // Ingresos
-      Transaction(
-        id: '1',
-        description: 'Salario mensual',
-        amount: 5000000,
-        type: TransactionType.income,
-        category: TransactionCategories.income[0], // 💼 Salario
-        date: DateTime.now(),
-      ),
-      Transaction(
-        id: '2',
-        description: 'Dividendos',
-        amount: 1500000,
-        type: TransactionType.income,
-        category: TransactionCategories.income[1], // 📈 Inversiones
-        date: DateTime.now(),
-      ),
-      // Gastos
-      Transaction(
-        id: '3',
-        description: 'Alquiler',
-        amount: 1500000,
-        type: TransactionType.expense,
-        category: TransactionCategories.expense[1], // 🏠 Hogar
-        date: DateTime.now(),
-      ),
-      Transaction(
-        id: '4',
-        description: 'Supermercado',
-        amount: 500000,
-        type: TransactionType.expense,
-        category: TransactionCategories.expense[0], // 🍔 Comida
-        date: DateTime.now(),
-      ),
-      Transaction(
-        id: '5',
-        description: 'Servicios públicos',
-        amount: 300000,
-        type: TransactionType.expense,
-        category: TransactionCategories.expense[1], // 🏠 Hogar
-        date: DateTime.now(),
-      ),
-      Transaction(
-        id: '6',
-        description: 'Gasolina',
-        amount: 200000,
-        type: TransactionType.expense,
-        category: TransactionCategories.expense[2], // 🚗 Transporte
-        date: DateTime.now(),
-      ),
-    ]);
-    _updateTotals();
-  }
 } 
